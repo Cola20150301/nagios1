@@ -1,0 +1,389 @@
+{% extends 'index.html' %}
+
+//css
+{% block head-css %}
+    <link href="/static/css/plugins/switchery/switchery.css" rel="stylesheet">
+    <!-- Toastr style -->
+    <link href="/static/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+
+    <link href="/static/css/plugins/dataTables/dataTables.tableTools.min.css" rel="stylesheet">
+    <link href="/static/css/plugins/dataTables/dataTables.bootstrap.css" rel="stylesheet">
+    <link href="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css"
+          rel="stylesheet"/>
+{% endblock %}
+
+//左侧菜单
+{% block rds %}
+    <ul class="nav nav-second-level collapse in">
+        <li>
+            <a href="{% url 'rds_index' %}">子账号列表</a>
+        </li>
+
+    </ul>
+
+{% endblock %}
+
+//页面标签和可执行部分
+{% block action-area %}
+    <div class="row wrapper border-bottom white-bg page-heading">
+        <div class="col-sm-4">
+            <h2>Nagios</h2>
+            <ol class="breadcrumb">
+                {#                <li>#}
+                {#                    <a href='/home'>首页</a>#}
+                {#                </li>#}
+                <li>
+                    <a href={% url 'nagios_home' %}>Nagios</a>
+                </li>
+                <li class="active">
+                    <strong>实例列表</strong>
+                </li>
+            </ol>
+        </div>
+        <div class="col-sm-8">
+            <div class="title-action">
+                <a type="button" id="update" class="btn btn-primary" style="margin-right: 10px;">更新</a>
+                <button type="button" class="btn btn-danger pull-right" data-toggle="modal"
+                        data-target="#del_nagios_host_modal" >
+                    删除
+                </button>
+                <button type="button" class="btn btn-primary pull-right" data-toggle="modal"
+                        data-target="#add_nagios_host_modal" style="margin-right: 10px;">
+                    新增
+                </button>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal inmodal fade" id="add_nagios_host_modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-xs">
+            <div class="modal-content">
+                <form method="post" action="{% url 'add_host' %}" id="add_nagios_host_form">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span
+                                aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title">新增Nagios监控</h4>
+
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="">host_name</label>
+                            <input type="text" name="host_name" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>address</label>
+                            <input type="text" name="address" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>max_check_attempts</label>
+                            <input type="text" name="max_check_attempts" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>check_period</label>
+                            <input type="text" name="check_period" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>contact_groups</label>
+                            <input type="text" name="contact_groups" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>notification_interval</label>
+                            <input type="text" name="notification_interval" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>notification_period</label>
+                            <input type="text" name="notification_period" class="form-control">
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+                        <button type="button" class="btn btn-primary" id="add_nagios_host_submit">提交</button>
+                    </div>
+                </form>
+
+            </div>
+
+
+        </div>
+    </div>
+
+    <div class="modal inmodal fade" id="del_nagios_host_modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-xs">
+            <div class="modal-content">
+                <form method="post" action="{% url 'del_host' %}" id="del_nagios_host_form">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span
+                                aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title">删除Nagios监控</h4>
+
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="">host_name</label>
+                            <input type="text" name="host_name" class="form-control">
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+                        <button type="button" class="btn btn-primary" id="del_nagios_host_submit">提交</button>
+                    </div>
+                </form>
+
+            </div>
+
+
+        </div>
+    </div>
+
+
+{% endblock %}
+
+//主页编辑部分
+{% block page-content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row " id="row1">
+            <div class="col-lg-12">
+                <div class="ibox ">
+                    <div class="ibox-content" style="height: 800px">
+                        <div class="spiner-example" style="margin-top: 250px">
+                            <div class="sk-spinner sk-spinner-rotating-plane"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row " id="row2" hidden>
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+
+                    <div class="ibox-content">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="table1">
+                                <thead>
+                                <tr>
+                                    <th>instance_id</th>
+                                    <th>host_name</th>
+                                    <th>address</th>
+                                    <th>is_active</th>
+                                    <th>check_interval</th>
+                                    <th>max_check_attempts</th>
+                                    <th>retry_interval</th>
+                                    <th>notification_interval</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for i in data %}
+                                    <tr>
+                                        <td>{{ i.instance_id }}</td>
+                                        <td>{{ i.host_name }}</td>
+                                        <td>{{ i.address }}</td>
+                                        <td>
+                                            {% if i.is_active ==  '1' %}
+                                                UP
+                                            {% elif i.is_active == '0' %}
+                                                DOWN
+                                            {% endif %}
+
+                                        </td>
+                                        <td>{{ i.check_interval }}</td>
+                                        <td>{{ i.max_check_attempts }}</td>
+                                        <td>{{ i.retry_interval }}</td>
+                                        <td>{{ i.notification_interval }}</td>
+
+                                    </tr>
+                                {% endfor %}
+
+                                </tbody>
+                                <tfoot>
+
+                                </tfoot>
+                            </table>
+                        </div>
+
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}
+
+//各页面js
+{% block bottom-js %}
+    <!-- Data Tables -->
+    <script src="/static/js/plugins/dataTables/jquery.dataTables.js"></script>
+    <script src="/static/js/plugins/dataTables/dataTables.bootstrap.js"></script>
+    <script src="/static/js/plugins/dataTables/dataTables.responsive.js"></script>
+    <script src="/static/js/plugins/dataTables/dataTables.tableTools.min.js"></script>
+
+    <!-- Toastr script -->
+    <script src="/static/js/plugins/toastr/toastr.min.js"></script>
+
+    <script src="/static/js/plugins/bootstrap3-editable/bootstrap-editable.min.js"></script>
+
+
+    <script>
+        $(document).ready(function () {
+            $('body').addClass('mini-navbar');
+            /* Init DataTables */
+            var oTable = $('#table1').DataTable(
+                {
+                    initComplete: function () {
+                        this.api().columns().every(function () {
+                            var column = this;
+                            var select = $('<select><option value=""></option></select>')
+                                .appendTo($(column.footer()).empty())
+                                .on('change', function () {
+                                    var val = $.fn.dataTable.util.escapeRegex(
+                                        $(this).val()
+                                    );
+
+                                    column
+                                        .search(val ? '^' + val + '$' : '', true, false)
+                                        .draw();
+                                });
+
+                            column.data().unique().sort().each(function (d, j) {
+                                select.append('<option value="' + d + '">' + d + '</option>')
+                            });
+
+                        });
+                    },
+                    "dom": 'lTfigtp',
+                    "tableTools": {
+                        "sSwfPath": "/static/img/copy_csv_xls_pdf.swf"
+                    },
+
+                    "pagingType": "full_numbers",
+                    "stateSave": true,
+                    "aLengthMenu": [[10, 50, 100, -1], ["10", "50", "100", "ALL"]],
+                    "columnDefs": [
+                        {
+                            targets: 1,//targets last column, use 0 for first column
+                            className: 'btn-link pointer',
+                            "data": "download_link",
+                            {#"render": function (data, type, full, meta) {#}
+                            {#    console.log(data)#}
+                            {#    var rds_value = data.split('&amp;')[0]#}
+                            {#    var rds_id = rds_value.split('#')[0];#}
+                            {##}
+                            {#    var rds_des = data.split('&amp;')[1];#}
+                            {##}
+                            {##}
+                            {#    return '<a class="btn-link"  href="/rds/basicInfo/' + rds_id + '" >' + rds_id + '</a><br><span class="DBInstanceDescription" data-pk="' + rds_value + '">' + rds_des + '</span>';#}
+                            //}
+                        }
+
+                    ],
+                    "oLanguage": {                          //汉化
+                        "sLengthMenu": "每页显示 _MENU_ 条记录",
+                        "sZeroRecords": "没有检索到数据",
+                        "sInfo": "当前数据为从第 _START_ 到第 _END_ 条数据；总共有 _TOTAL_ 条记录",
+                        "sInfoEmtpy": "没有数据",
+                        "sProcessing": "正在加载数据...",
+                        "oPaginate": {
+                            "sFirst": "首页",
+                            "sPrevious": "前页",
+                            "sNext": "后页",
+                            "sLast": "尾页"
+                        }
+                    }
+
+                });
+
+
+            toastr.options = {
+                "closeButton": true,
+                "debug": false,
+                "progressBar": true,
+                "preventDuplicates": false,
+                "positionClass": "toast-top-right",
+                "onclick": null,
+                "showDuration": "400",
+                "hideDuration": "1000",
+                "timeOut": "2500",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+
+            // 页面加载元素
+            $('#row1').remove();
+            $('#row2').removeAttr("hidden");
+
+
+            //全量更新
+            $('#update').click(function () {
+                toastr.info("更新中，请稍后!");
+                $.get("{% url 'get_host' %}", function (callback) {
+
+                    if (callback == 200) {
+                        toastr.success("已经全部更新完毕!3s后自动刷新!");
+                        setTimeout(function () {
+                            location.reload()
+                        }, 3000)
+                    }
+                    else {
+                        toastr.error(callback)
+                    }
+                })
+            });
+
+
+            //新增站点名
+            $('#add_nagios_host_submit').click(function () {
+                toastr.info("更新中，请稍后!");
+                console.log($('#add_nagios_host_form').serialize());
+                $.post('{% url "add_host" %}', $('#add_nagios_host_form').serialize(), function (callback) {
+                    callback = JSON.parse(callback);
+                    console.log(callback['success']);
+                    if (callback['success']) {
+                        toastr.success(callback['success']);
+                        setTimeout(function () {
+                            location.reload()
+                        }, 2000)
+                    }
+                    else {
+                        toastr.error(callback['error']);
+                        $('#add_nagios_host_modal').modal('hide')
+                    }
+                })
+            });
+
+            //删除站点名
+            $('#del_nagios_host_submit').click(function () {
+                toastr.info("更新中，请稍后!");
+                console.log($('#del_nagios_host_submit').serialize());
+                $.post('{% url "del_host" %}', $('#del_nagios_host_form').serialize(), function (callback) {
+                    callback = JSON.parse(callback);
+                    console.log(callback);
+                    if (callback['success']) {
+                        toastr.success(callback['success']);
+                        setTimeout(function () {
+                            location.reload()
+                        }, 2000)
+                    }
+                    else {
+                        toastr.error(callback['error']);
+                        $('#del_nagios_host_modal').modal('hide')
+                    }
+                })
+            });
+
+        });
+
+
+    </script>
+
+
+{% endblock %}
