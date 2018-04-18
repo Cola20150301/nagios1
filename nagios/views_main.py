@@ -44,17 +44,13 @@ class Nagios(object):
         params = {
             'apikey': NAGIOS_API_KEY,
         }
-
         r = requests.get(url=url, params=params)
-        print r.text
-        print r.json()
         if r.status_code == 200:
             models.Host.objects.all().delete()
             host_list = []
             data = r.json()['hostlist']['host']
             for i in data:
                 host_list.append(models.Host(
-                    # pk=data.index(i),
                     instance_id=i['instance_id'],
                     host_name=i['host_name'],
                     is_active=i['is_active'],
@@ -79,10 +75,6 @@ class Nagios(object):
                 ))
             print host_list
             models.Host.objects.bulk_create(host_list)
-            # for i in r.json()['hostlist']['host']:
-            #     print i
-            #     i.pop('@attributes')
-            #     models.Host.objects.update_or_create(address=i['address'], defaults=i)
             return 200
         else:
             print 'nagios get host api failed!'
